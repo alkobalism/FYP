@@ -8,10 +8,10 @@ class DashboardTab extends StatefulWidget {
   const DashboardTab({super.key, required this.onStartRidePressed});
 
   @override
-  State<DashboardTab> createState() => _DashboardTabState();
+  State<DashboardTab> createState() => DashboardTabState();
 }
 
-class _DashboardTabState extends State<DashboardTab> {
+class DashboardTabState extends State<DashboardTab> {
   List<RideSession> _rides = [];
   bool _isLoading = true;
 
@@ -23,10 +23,10 @@ class _DashboardTabState extends State<DashboardTab> {
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    loadHistory();
   }
 
-  Future<void> _loadHistory() async {
+  Future<void> loadHistory() async {
     setState(() => _isLoading = true);
     final rides = await RideHistoryService.loadRides();
     
@@ -79,7 +79,7 @@ class _DashboardTabState extends State<DashboardTab> {
       backgroundColor: const Color(0xFF121212),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _loadHistory,
+          onRefresh: loadHistory,
           color: Colors.redAccent,
           backgroundColor: const Color(0xFF1E1E1E),
           child: CustomScrollView(
@@ -281,6 +281,18 @@ class _DashboardTabState extends State<DashboardTab> {
     final rideDuration = _formatDuration(r.durationSeconds);
     // We could store vehicle in session metadata, but for now fallback to defaults or path size
     
+    final String rideTitle;
+    final hour = r.date.hour;
+    if (hour < 12) {
+      rideTitle = "Morning Ride 🌅";
+    } else if (hour < 17) {
+      rideTitle = "Afternoon Ride ☀️";
+    } else if (hour < 21) {
+      rideTitle = "Evening Ride 🌌";
+    } else {
+      rideTitle = "Night Ride 🌙";
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       child: InkWell(
@@ -290,7 +302,7 @@ class _DashboardTabState extends State<DashboardTab> {
             MaterialPageRoute(
               builder: (context) => RideDetailsScreen(session: r),
             ),
-          ).then((_) => _loadHistory()); // reload stats in case deleted
+          ).then((_) => loadHistory()); // reload stats in case deleted
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -322,16 +334,32 @@ class _DashboardTabState extends State<DashboardTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      r.potholes.isNotEmpty 
-                          ? "${r.potholes.length} Potholes Detected"
-                          : "Clear Commute Log",
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          rideTitle,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        if (r.potholes.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.orangeAccent.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orangeAccent.withOpacity(0.5), width: 1),
+                            ),
+                            child: Text(
+                              "${r.potholes.length} ⚠️",
+                              style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       formattedDate,
-                      style: const TextStyle(color: Colors.white30, fontSize: 12),
+                      style: const TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -346,6 +374,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
             ],
           ),

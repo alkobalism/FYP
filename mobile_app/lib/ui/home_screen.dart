@@ -12,6 +12,7 @@ import '../services/ride_history_service.dart';
 import '../services/app_settings_service.dart';
 import '../main.dart'; // for cameras list
 import 'camera_overlay.dart'; 
+import 'ride_details_screen.dart';
 import '../utils/isolate_utils.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -138,6 +139,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const SnackBar(
             content: Text("Ride session saved successfully!"),
             backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RideDetailsScreen(session: session),
           ),
         );
       }

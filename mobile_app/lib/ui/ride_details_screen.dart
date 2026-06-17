@@ -86,6 +86,17 @@ class RideDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formattedDate = "${session.date.day}/${session.date.month}/${session.date.year} at ${session.date.hour.toString().padLeft(2, '0')}:${session.date.minute.toString().padLeft(2, '0')}";
+    final String rideTitle;
+    final hour = session.date.hour;
+    if (hour < 12) {
+      rideTitle = "Morning Ride 🌅";
+    } else if (hour < 17) {
+      rideTitle = "Afternoon Ride ☀️";
+    } else if (hour < 21) {
+      rideTitle = "Evening Ride 🌌";
+    } else {
+      rideTitle = "Night Ride 🌙";
+    }
     
     // Map Center calculation
     LatLng mapCenter = const LatLng(2.222, 102.251);
@@ -130,7 +141,7 @@ class RideDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text("Ride Details"),
+        title: Text(rideTitle),
         backgroundColor: const Color(0xFF1E1E1E),
         foregroundColor: Colors.white,
         actions: [
@@ -226,7 +237,7 @@ class RideDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    "Ride Performance Metrics",
+                    "Performance Metrics",
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),

@@ -55,6 +55,8 @@ class MainNavigationHub extends StatefulWidget {
 
 class _MainNavigationHubState extends State<MainNavigationHub> {
   int _currentIndex = 0;
+  final GlobalKey<DashboardTabState> _dashboardKey = GlobalKey<DashboardTabState>();
+  final GlobalKey<HistoryMapTabState> _mapKey = GlobalKey<HistoryMapTabState>();
 
   void _onSettingsChanged() {
     setState(() {}); // Force rebuild of other tabs when settings change
@@ -65,6 +67,7 @@ class _MainNavigationHubState extends State<MainNavigationHub> {
     // We instantiate tabs dynamically to ensure settings/history reload
     final List<Widget> tabs = [
       DashboardTab(
+        key: _dashboardKey,
         onStartRidePressed: () {
           setState(() {
             _currentIndex = 1; // Switch to Record scan tab
@@ -72,7 +75,9 @@ class _MainNavigationHubState extends State<MainNavigationHub> {
         },
       ),
       const HomeScreen(), // Record session scan screen
-      const HistoryMapTab(), // Aggregate map showing all potholes
+      HistoryMapTab(
+        key: _mapKey,
+      ), // Aggregate map showing all potholes
       SettingsTab(onSettingsChanged: _onSettingsChanged), // App settings
     ];
 
@@ -87,6 +92,11 @@ class _MainNavigationHubState extends State<MainNavigationHub> {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 0) {
+            _dashboardKey.currentState?.loadHistory();
+          } else if (index == 2) {
+            _mapKey.currentState?.loadPotholesAndLocation();
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF1E1E1E),

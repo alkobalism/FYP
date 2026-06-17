@@ -8,10 +8,10 @@ class HistoryMapTab extends StatefulWidget {
   const HistoryMapTab({super.key});
 
   @override
-  State<HistoryMapTab> createState() => _HistoryMapTabState();
+  State<HistoryMapTab> createState() => HistoryMapTabState();
 }
 
-class _HistoryMapTabState extends State<HistoryMapTab> {
+class HistoryMapTabState extends State<HistoryMapTab> {
   List<PotholeHazard> _potholes = [];
   bool _isLoading = true;
   LatLng _mapCenter = const LatLng(2.222, 102.251); // Default center (UTeM Melaka!)
@@ -21,10 +21,10 @@ class _HistoryMapTabState extends State<HistoryMapTab> {
   @override
   void initState() {
     super.initState();
-    _loadPotholesAndLocation();
+    loadPotholesAndLocation();
   }
 
-  Future<void> _loadPotholesAndLocation() async {
+  Future<void> loadPotholesAndLocation() async {
     setState(() => _isLoading = true);
     
     // Load potholes
@@ -201,7 +201,7 @@ class _HistoryMapTabState extends State<HistoryMapTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadPotholesAndLocation,
+            onPressed: loadPotholesAndLocation,
           )
         ],
       ),
