@@ -1,0 +1,20 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Large dataset files
+*.npy
+*.pt
+*.tflite
+model_training/dataset/
+
+# Flutter build outputs
+mobile_app/build/
+mobile_app/.dart_tool/
+mobile_app/.flutter-plugins*

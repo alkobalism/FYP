@@ -1,0 +1,11 @@
+ultralytics
+roboflow
+opencv-python
+matplotlib
+pandas
+scikit-learn
+tensorboard
+ipykernel
+jupyter
+tensorflow
+tflite-support

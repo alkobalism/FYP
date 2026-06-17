@@ -1,0 +1,904 @@
+--- PAGE 1 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+AI-POWERED REAL -TIME POTHOLE DETECTION AND HAZARD 
+RISK ASSESSMENT SYSTEM FOR MICRO -MOBILITY (BICYCLE AND 
+ELECTRIC SCOOTER) USERS  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+MUHAMMAD AL IEQBAL NUR HAQIEMI BIN ABDUL KHALID  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+UNIVERSITI TEKNIKAL MALAYSIA MELAKA  
+ 
+ 
+ 
+ 
+--- PAGE 2 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+BORANG PENGESAHAN STATUS LAPORAN  
+ 
+ 
+JUDUL:  [AI-POWERED REAL -TIME POTHOLE DETECTION AND HAZARD 
+RISK ASSESSMENT SYSTEM FOR MICRO -MOBILITY (BICYCLE AND 
+ELECTRIC SCOOTER) USERS  ] 
+ 
+SESI PENGAJIAN:  [2026 / 2027] 
+ 
+ 
+Saya:  Muhammad Al Ieqbal Nur Haqiemi bin Abdul Khalid 
+ 
+mengaku membenarkan tesis Projek Sarjana Muda ini disimpan di Perpustakaan Universiti 
+Teknikal Malaysia Melaka dengan syarat-syarat kegunaan seperti berikut: 
+ 
+1. Tesis dan projek adalah hakmilik Universiti Teknikal Malaysia Melaka. 
+2. Perpustakaan Fakulti Kecerdasan Buatan dan Keselamatan Siber dibenarkan membuat 
+salinan unituk tujuan pengajian sahaja. 
+3. Perpustakaan Fakulti Kecerdasan Buatan dan Keselamatan Siber dibenarkan membuat 
+salinan tesis ini sebagai bahan pertukaran antara institusi pengajian tinggi.  
+4. * Sila tandakan (✓) 
+ 
+_____✓_____ SULIT (Mengandungi maklumat yang berdarjah 
+keselamatan atau kepentingan Malaysia 
+seperti yang termaktub di dalam AKTA 
+RAHSIA RASMI 1972) 
+_____✓_____ TERHAD (Mengandungi maklumat TERHAD yang 
+telah ditentukan oleh organisasi / badan 
+di mana penyelidikan dijalankan) 
+____✓______ TIDAK TERHAD  
+ 
+ 
+   
+(TANDATANGAN PELAJAR)  (TANDATANGAN PENYELIA) 
+ 
+Alamat tetap: _____________________ 
+  
+________________________________ 
+ 
+_________________________________ 
+ Nama Penyelia 
+ 
+Tarikh: __________________________ 
+  
+Tarikh: __________________________ 
+ 
+CATATAN: * Jika tesis ini SULIT atau TERHAD, sila lampirkan surat daripada pihak 
+berkuasa. 
+  
+--- PAGE 3 ---
+i 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+[TITLE OF FINAL YEAR PROJECT] 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+[NAME OF STUDENT] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+This report is submitted in partial fulfillment of the requirements for the  
+Bachelor of [Computer Science (Artificial Intelligence)] with Honours. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+FACULTY OF ARTIFICIAL INTELLIGENCE AND CYBER SECURITY 
+UNIVERSITI TEKNIKAL MALAYSIA MELAKA 
+[YEAR OF SUBMISSION] 
+ 
+ 
+ 
+ 
+  
+--- PAGE 4 ---
+ii 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+DECLARATION 
+ 
+ 
+ 
+ 
+I hereby declare that this project report entitled   
+[TITLE OF FINAL YEAR PROJECT] 
+is written by me and is my own effort and that no part has been plagiarized  
+without citations. 
+ 
+STUDENT : ______________________________________   Date : ________ 
+([NAME OF STUDENT]) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+I hereby declare that I have read this project report and found 
+this project report is sufficient in term of the scope and quality for the award of 
+ Bachelor of [Computer Science (Artificial Intelligence)] with Honours. 
+ 
+ 
+ 
+ 
+SUPERVISOR  : ______________________________________   Date : ________ 
+([NAME OF THE SUPERVISOR]) 
+ 
+--- PAGE 5 ---
+iii 
+ 
+ 
+ 
+DEDICATION 
+ 
+ 
+ 
+ 
+[To my beloved parents...] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 6 ---
+iv 
+ 
+ 
+ 
+ACKNOWLEDGEMENTS 
+ 
+ 
+ 
+[I would like to thank En. Muhammad bin Ahmad for giving assistant to complete this 
+project successfully…... 
+ 
+I would also like to thank my beloved parents who have been giving me support and 
+motivation throughout my project…] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 7 ---
+v 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ABSTRACT 
+ 
+ 
+ 
+ 
+[Abstract must start from here . Abstracts should be concise, WRITTEN IN 
+ONE SPACING and justification and NOT MORE THAN 300 WORDS  IN A 
+SINGLE PAGE. Abstract is not the same as synopsis or report summary. Abstracts are 
+WRITTEN WITH ONE PARAGRAPH. It should briefly state the field of report 
+studies, problems to be solved, solutions, research processes; and the results 
+obtained.] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 8 ---
+vi 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ABSTRAK 
+ 
+ 
+ 
+ 
+[Abstrak mesti bermula disini. Abstrak mestilah ringkas,  DITULIS DALAM 
+SATU LANGKAU dan justifikasi TIDAK LEBIH DARIPADA 300 PERKATAAN 
+DALAM SATU MUKASURAT  sahaja. Abstrak tidak sama dengan sinopsis atau  
+ringkasan tesis. Abstrak DITULIS DALAM SATU PER ENGGAN. Ia  hendaklah 
+menyatakan dengan ringkas bidang kajian tesis, masalah yang hendak 
+diselesaikan, cara penyelesaian, proses penyelidikan; dan keputusan yang 
+diperolehi.] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 9 ---
+vii 
+ 
+ 
+ 
+ 
+ 
+TABLE OF CONTENTS 
+ 
+ 
+ 
+ PAGE 
+ 
+DECLARATION ....................................................................................................... II 
+DEDICATION .......................................................................................................... III 
+ACKNOWLEDGEMENTS ..................................................................................... IV 
+ABSTRACT ............................................................................................................... V 
+ABSTRAK ................................................................................................................ VI 
+TABLE OF CONTENTS ....................................................................................... VII 
+LIST OF TABLES ................................................................................................... IX 
+LIST OF FIGURES .................................................................................................. X 
+LIST OF ABBREVIATIONS ................................................................................. XI 
+LIST OF ATTACHMENTS .................................................................................. XII 
+CHAPTER 1: INTRODUCTION ........................................................................... 13 
+1.1 About Chapters and First Subtitle ................. Error! Bookmark not defined. 
+1.1.1 Second Subtitles .............................. Error! Bookmark not defined. 
+1.1.1.1 Third Subtitles ................................ Error! Bookmark not defined. 
+CHAPTER 2: LITERATURE REVIEW AND PROJECT METHODOLOGY 14 
+2.1 About Figures................................................ Error! Bookmark not defined. 
+CHAPTER 3: REQUIREMENT ANALYSIS ....................................................... 16 
+3.1 About Tables ................................................. Error! Bookmark not defined. 
+CHAPTER 4: DESIGN ........................................................................................... 19 
+--- PAGE 10 ---
+viii 
+ 
+ 
+ 
+4.1 About Table of Content ............................................................................... 19 
+CHAPTER 5: RESULTS AND DISCUSSION ..................................................... 21 
+5.1 About List of Tables .................................................................................... 21 
+5.2 About List of Figures ................................................................................... 21 
+5.3 About List of Figures ................................................................................... 21 
+5.4 About List of Figures ................................................................................... 21 
+5.5 About List of Figures ................................................................................... 22 
+CHAPTER 6: CONCLUSION ................................................................................ 23 
+6.1 Wrap-Up ...................................................................................................... 23 
+REFERENCES ......................................................................................................... 24 
+APPENDICES .......................................................................................................... 25 
+ 
+ 
+ 
+ 
+--- PAGE 11 ---
+ix 
+ 
+ 
+ 
+ 
+ 
+ 
+LIST OF TABLES 
+ 
+ 
+ 
+ PAGE 
+ 
+Table 3.1: Table Example ............................................ Error! Bookmark not defined. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 12 ---
+x 
+ 
+ 
+ 
+ 
+ 
+ 
+LIST OF FIGURES 
+ 
+ 
+ 
+ PAGE 
+ 
+Figure 2.1: Caption Window ....................................... Error! Bookmark not defined. 
+Figure 2.2:  Caption Numbering Window ................. Error! Bookmark not defined. 
+Figure 2.3: Example Figure with citation from a book  (Pike, 2008. Used with 
+permission) .................................................................... Error! Bookmark not defined. 
+Figure 4.1: How to update Table of Contents in this template ............................ 19 
+Figure 4.2: Updating the whole list ......................................................................... 19 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+--- PAGE 13 ---
+xi 
+ 
+ 
+ 
+ 
+ 
+ 
+LIST OF ABBREVIATIONS 
+ 
+ 
+ 
+ 
+FYP - Final Year Project 
+ 
+ 
+  
+--- PAGE 14 ---
+xii 
+ 
+ 
+ 
+ 
+ 
+ 
+LIST OF ATTACHMENTS 
+ 
+ 
+ 
+ PAGE 
+  
+Appendix A  Sample of data 19 
+Appendix B  Analysis of data collection 78 
+……..  …………  
+……..  …………  
+    
+--- PAGE 15 ---
+ 
+ 
+ 
+ 
+ 
+CHAPTER 1:  INTRODUCTION 
+ 
+The current landscape of road safety technology is heavily biased toward larger 
+motor vehicles, often leaving bicycle and electric scooter riders exposed to severe 
+infrastructural hazards. As micro -mobility solutions become increasingly integrated 
+into urb an transit networks, the vulnerability of these riders has become a critical 
+public safety concern. A primary threat to micro -mobility users is surface -induced 
+accidents caused by road defects such as potholes. Due to their small wheel diameters 
+and freque ntly rigid suspension systems, a minor pothole that a car might easily 
+traverse can cause an e -scooter rider to suffer an immediate loss of control or 
+mechanical failure. 
+While standard GPS applications provide effective route guidance, they lack the 
+real-time granular data necessary to warn users about immediate, localized changes in 
+road surface quality. Furthermore, existing safety tools, such as standard dashcams, 
+are p redominantly reactive . they record accidents post -occurrence rather than 
+preventing them. Consequently, there is an urgent demand for a proactive, real -time 
+warning system capable of identifying hazards as they appear and assessing their 
+specific threat level based on the rider's current state. 
+This study aims to bridge this safety gap by developing a proactive hazard 
+detection framework specifically tailored to the micro -mobility community. The 
+primary objectives are threefold: (1) to train a lightweight Convolutional Neural 
+Network (CNN) capable of identifying potholes in real -time on a mobile device; (2) 
+to implement a dynamic Risk Assessment Algorithm that calculates accident 
+probability by correlating pothole dimensions with real-time vehicle velocity; and (3) 
+to design a non-intrusive mobile interface that delivers immediate safety warnings via 
+audio and visual cues. The scope of the proposed system focuses on a fully offline 
+Android application utilizing TensorFlow Lite for on-device edge computing, ensuring 
+user privacy, zero latency, and independence from network coverage. 
+ 
+ 
+--- PAGE 16 ---
+14 
+ 
+ 
+ 
+CHAPTER 2:  LITERATURE REVIEW AND PROJECT METHODOLOGY 
+ 
+Road hazard detection has historically relied on tactile or vibration-based 
+sensors. Research by Kim et al. (2021) explored the use of smartphone 
+accelerometers to detect potholes. While effective at mapping road conditions, this 
+method is inherently reactive, identifying the hazard only after the impact has 
+occurred. For micro-mobility users, vision-based detection is vastly superior as it 
+facilitates proactive warnings, allowing riders to avoid hazards entirely before a 
+collision. 
+ 
+The advent of Deep Learning, particularly the "You Only Look Once" (YOLO) 
+architecture, has revolutionized real-time object detection by treating bounding box 
+prediction as a single regression problem. Earlier iterations, such as YOLOv3 and 
+YOLOv4, established the feasibility of road damage detection but demanded high-
+performance GPUs, rendering them unsuitable for mobile deployment. Recent 
+advancements, namely YOLOv8 and YOLOv11 Nano, utilize advanced feature 
+extraction and optimized architectures specifically designed for edge devices. These 
+models offer a critical balance between Mean Average Precision (mAP) and 
+inference speed, which is indispensable for real-time detection on a moving bicycle 
+or scooter. 
+ 
+To achieve a "fully offline" system, on-device edge computing is facilitated 
+through TensorFlow Lite (TFLite). This framework allows complex deep learning 
+models to run directly on a smartphone’s CPU or Neural Processing Unit (NPU). By 
+employing weight quantization which is converting 32-bit floating-point parameters 
+into 8-bit integers to make the model size is significantly reduced and inference 
+latency is improved without substantial degradation in accuracy. By processing data 
+locally, user privacy is maintained since no camera feed is uploaded to cloud servers, 
+and the system remains robust in areas with poor cellular reception. 
+ 
+Despite these technological advancements, existing literature focuses almost 
+exclusively on motor vehicles. Micro-mobility requires a specialized risk assessment 
+model because the threat posed by a pothole is inextricably linked to the vehicle's 
+--- PAGE 17 ---
+15 
+ 
+ 
+ 
+unique physical constraints, specifically its wheel diameter and velocity. Existing 
+detection systems lack this critical speed-risk correlation, highlighting the necessity 
+for the methodology proposed in this research. 
+--- PAGE 18 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+CHAPTER 3:  REQUIREMENT ANALYSIS 
+The proposed methodology follows a structured AI development lifecycle, 
+ensuring the model is optimized for the specific computational and physical constraints 
+of handlebar-mounted mobile devices. The framework is divided into four primary 
+phases: Data Acquisition, Model Optimization, Algorithm Development, and System 
+Architecture. 
+ 
+3.1 Data Acquisition and Pre-processing 
+The accuracy of the vision-based detector is heavily dependent on the quality 
+and diversity of the training data. This project utilizes the Japan Road Damage Dataset, 
+sourced via the Roboflow platform, to ensure the model recognizes a wide variety of 
+pothole morphologies and asphalt conditions. To simulate real -world micro-mobility 
+riding conditions, the dataset undergoes rigorous data augmentation. Images are 
+subjected to motion blur to simulate vehicle vibration, brightness variations to account 
+for diver se weather and lighting conditions, and rotational adjustments to 
+accommodate various smartphone mounting angles on handlebars. 
+3.2 Model Training and Edge Optimization 
+The model is trained using the PyTorch framework in conjunction with the 
+Ultralytics YOLO architecture. Training is executed on a high -performance 
+workstation equipped with an NVIDIA RTX 3060 GPU to handle data pre-processing 
+and CUDA -accelerated model com pilation. To ensure the model meets the strict 
+latency requirements of a mobile environment, a smaller input image size (320x320) 
+is utilized, allowing the model to process fewer pixels and massively accelerating 
+inference speed. 
+Once the desired Mean Average Precision (mAP) is achieved, the PyTorch 
+model is exported to the. tflite format. During this export process, INT8 quantization 
+is applied to shrink the model size by approximately a factor of four. This optimization 
+--- PAGE 19 ---
+17 
+ 
+ 
+ 
+drastically lowers RAM usage and accelerates CPU execution, enabling the model to 
+run efficiently on standard Android smartphones (minimum 8GB RAM) without 
+requiring an active internet connection. 
+3.3 Dynamic Risk Assessment Algorithm 
+To translate raw bounding box detections into actionable safety metrics, the 
+system integrates a novel mathematical model to calculate the Risk Index (RI). Unlike 
+traditional systems that treat all potholes equally, this algorithm assesses hazard 
+severity by mathematically correlating the dimension of the pothole with the vehicle's 
+kinetic energy: 
+𝑅𝐼 =  ( 𝑆𝑑𝑒𝑡𝑒𝑐𝑡𝑒𝑑
+𝑆𝑡ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑
+) × (𝑉𝑐𝑢𝑟𝑟𝑒𝑛𝑡
+𝑉𝑙𝑖𝑚𝑖𝑡
+)
+2
+×  100% 
+Where 𝑆𝑑𝑒𝑡𝑒𝑐𝑡𝑒𝑑 represents the area of the pothole identified by the AI and  
+𝑆𝑡ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 acts as a calibration constant representative of the vehicle's wheel diameter. 
+𝑉𝑐𝑢𝑟𝑟𝑒𝑛𝑡 is the real-time velocity retrieved from the smartphone's GPS hardware and  
+𝑉𝑙𝑖𝑚𝑖𝑡 is the assumed maximum speed for the vehicle (e.g., 40 km/h). By squaring the 
+velocity ratio, the formula perfectly mirrors the real -world physics of kinetic energy  
+(𝐾. 𝐸. =  
+1
+2  𝑚𝑣2) recognizing that the destructive impact force of a hazard scales 
+exponentially with the rider's speed. 
+3.4 System Architecture and Application Development 
+The deployment application is developed using the Flutter framework, 
+ensuring seamless cross-platform integration with the smartphone's camera and GPS 
+hardware. The architecture is stratified into three main layers: 
+• Input Layer: Captures high -frequency frames from the smartphone 
+camera and velocity data from the GPS module. 
+• Inference Layer: The TFLite interpreter processes the frames offline 
+to detect potholes and extract bounding box coordinates at a target rate 
+of at least 15 Frames Per Second (FPS). 
+--- PAGE 20 ---
+18 
+ 
+ 
+ 
+• Logic & Alert Layer: The Risk Assessment Algorithm processes the 
+AI output and GPS data. When the calculated Risk Index exceeds a 
+predefined safety threshold (e.g., 75%), the system triggers immediate, 
+non-intrusive warnings. These include a high-frequency audible "beep" 
+and a high-contrast visual red overlay on the UI, ensuring the rider is 
+alerted under direct sunlight with a total system latency of less than 
+200ms. 
+ 
+  
+--- PAGE 21 ---
+19 
+ 
+ 
+ 
+CHAPTER 4:  DESIGN 
+ 
+ 
+ 
+ 
+4.1 About Table of Content 
+In this template, the table of contents rely on the use of styles to format chapter 
+headings and subtitles and generates the table of content automatically.  To generate 
+the table of content in this template, place the cursor on the current table of content.  
+Next, go to “References” tab and click on the “Update Table” icon, as shown in Figure 
+4.1.   
+ 
+Figure 4.1: How to update Table of Contents in this template 
+In the “Update Table of Contents” window, choose option “Update the entire 
+table” and click OK.  Microsoft Word will generate a new table of contents based on 
+the student’s updates.   
+ 
+Figure 4.2: Updating the whole list  
+
+--- PAGE 22 ---
+20 
+ 
+ 
+ 
+In the “Update Table of Contents” window, choose option “Update the entire table” 
+and click OK.  Microsoft Word will generate a new table of contents based on the 
+student’s
+--- PAGE 23 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+CHAPTER 5:  RESULTS AND DISCUSSION 
+ 
+ 
+ 
+ 
+5.1 About List of Tables 
+To update List of Tables, place the cursor on the list that needs to be updated.  
+Similar to the Table of Content, click on the icon “Update Table” under References 
+tab to list down the updates, as shown in Figure 4.1 
+5.2 About List of Figures 
+To update List of Figures, place the cursor on the list that needs to be updated.  
+Next, click on the icon “Update Table” under References tab to list down the updates, 
+as shown in Figure 4.1.  
+5.3 About List of Figures 
+To update List of Figures, place the cursor on the list that needs to be updated.  
+Next, click on the icon “Update Table” under References tab to list down the updates, 
+as shown in Figure 4.1.  
+5.4 About List of Figures 
+To update List of Figures, place the cursor on the list that needs to be updated.  
+Next, click on the icon “Update Table” under References tab to list down the updates, 
+as shown in Figure 4.1.  
+--- PAGE 24 ---
+22 
+ 
+ 
+ 
+5.5 About List of Figures 
+To update List of Figures, place the cursor on the list that needs to be updated.  
+Next, click on the icon “Update Table” under References tab to list down the updates, 
+as shown in Figure 4.1.  
+ 
+ 
+--- PAGE 25 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+CHAPTER 6:  CONCLUSION 
+ 
+ 
+ 
+ 
+6.1 Wrap-Up 
+Please enjoy writing your FYP 
+ 
+ 
+ 
+ 
+--- PAGE 26 ---
+ 
+ 
+ 
+ 
+REFERENCES 
+ 
+Buchwalow, I. B., and Böcker, W. (2010). Immunohistochemistry: basics and 
+methods. Berlin: Springer Verlag. 
+ 
+Caamaño-Tubío, R. I., Pérez, J., Ferreiro, S.,  and Aldegunde, M. (2007). Peripheral 
+serotonin dynamics in the rainbow trout ( Oncorhynchus mykiss ) 
+Comparative Biochemistry and Physiology Pa rt C: Toxicology & 
+Pharmacology. 145(2): 245-255. 
+ 
+Cameron, A. A., Plenderleith, M. B. and Snow, P. J. (1990). Organization of the spinal 
+cord in four species of elasmobranch fishes: cytoarchitecture and distribution 
+of serotonin and selected neuropeptides.  The Journal of Comparative 
+Neurology. 297: 201-218. 
+ 
+Desa, M.I (1995).  Bus fleet maintenance modeling in a developing country.  Ph.D 
+Thesis, University of Salford. 
+ 
+Improve indigenous housing now, government told, 2007. accessed 8 February 2009, 
+<http://www.architecture.com.au/i-cms?page=10220>. 
+ 
+International  Narcotics  Control  Board  1999,  United  Nations,  accessed  1  October  
+1999, <http://www.incb.org>. 
+ 
+Theusen, G. J. and Fabrycky, W. J. (1984). Engineering Economy. 6th. Ed. Englewood 
+Cliffs, N. J.: Prentice Hall. 150-178. 
+  
+ 
+ 
+--- PAGE 27 ---
+ 
+ 
+ 
+ 
+ 
+APPENDICES 
