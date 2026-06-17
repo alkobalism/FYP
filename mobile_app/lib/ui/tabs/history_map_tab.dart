@@ -221,6 +221,7 @@ class _HistoryMapTabState extends State<HistoryMapTab> {
                     TileLayer(
                       urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                       subdomains: const ['a', 'b', 'c'],
+                      userAgentPackageName: 'com.example.pothole_detection.mobile_app',
                       tileBuilder: (context, tileWidget, tile) {
                         // Blend dark filter over standard OSM tiles to fit dark mode aesthetics
                         return ColorFiltered(

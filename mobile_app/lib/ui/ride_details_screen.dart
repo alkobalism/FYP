@@ -158,6 +158,7 @@ class RideDetailsScreen extends StatelessWidget {
                     TileLayer(
                       urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                       subdomains: const ['a', 'b', 'c'],
+                      userAgentPackageName: 'com.example.pothole_detection.mobile_app',
                       tileBuilder: (context, tileWidget, tile) {
                         return ColorFiltered(
                           colorFilter: const ColorFilter.matrix(<double>[
