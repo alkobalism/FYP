@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:isolate';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
+import 'package:latlong2/latlong.dart';
 import '../services/risk_service.dart';
+import '../services/ride_history_service.dart';
+import '../services/app_settings_service.dart';
 import '../main.dart'; // for cameras list
 import 'camera_overlay.dart'; 
-import '../utils/isolate_utils.dart'; // IMPORT NEW UTILS
+import '../utils/isolate_utils.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,8 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> labels = ["pothole"];
   double currentSpeed = 0.0;
   Position? _lastPosition;
-  bool isTestMode = false;
-  double simulatedSpeed = 25.0;
   String riskLevel = "LOW";
   List<dynamic> recognitions = [];
   
@@ -44,17 +44,27 @@ class _HomeScreenState extends State<HomeScreen> {
   int lastBeepTime = 0;
 
   final int inputSize = 320; 
+
+  // Recording variables
+  bool _isRecording = false;
+  List<LatLng> _sessionPath = [];
+  List<PotholeHazard> _sessionPotholes = [];
+  DateTime? _sessionStartTime;
+  double _maxSpeed = 0.0;
+  double _speedSum = 0.0;
+  int _speedCount = 0;
+  double _rideDistanceKm = 0.0;
+  Position? _lastLoggedPosition;
+  int _lastLoggedPotholeTime = 0;
+  
+  StreamSubscription<Position>? _positionSubscription;
   
   @override
   void initState() {
     super.initState();
     _isolateUtils = IsolateUtils();
     
-    // Start Camera IMMEDIATELY (Don't wait for AI)
-    initCamera();
-    initGeoLocation();
-    
-    // Start AI in background
+    // Start AI in background once on startup
     startInferenceService();
   }
 
@@ -70,6 +80,76 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _startRecording() {
+    setState(() {
+      _isRecording = true;
+      _sessionPath = [];
+      _sessionPotholes = [];
+      _sessionStartTime = DateTime.now();
+      _maxSpeed = 0.0;
+      _speedSum = 0.0;
+      _speedCount = 0;
+      _rideDistanceKm = 0.0;
+      _lastLoggedPosition = null;
+      _lastPosition = null;
+      _lastLoggedPotholeTime = 0;
+      currentSpeed = 0.0;
+      riskLevel = "LOW";
+      recognitions = [];
+    });
+
+    initCamera();
+    initGeoLocation();
+  }
+
+  void _stopRecording(bool save) async {
+    // Stop camera stream & dispose controller
+    if (controller != null) {
+      try {
+        await controller!.stopImageStream();
+      } catch (_) {}
+      await controller!.dispose();
+      controller = null;
+    }
+    
+    // Cancel location subscription
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+
+    if (save && _sessionStartTime != null) {
+      final durationSeconds = DateTime.now().difference(_sessionStartTime!).inSeconds;
+      final avgSpeed = _speedCount > 0 ? _speedSum / _speedCount : 0.0;
+      
+      final session = RideSession(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        date: _sessionStartTime!,
+        durationSeconds: durationSeconds,
+        distanceKm: _rideDistanceKm,
+        avgSpeedKmh: avgSpeed,
+        maxSpeedKmh: _maxSpeed,
+        path: _sessionPath,
+        potholes: _sessionPotholes,
+      );
+
+      await RideHistoryService.saveRide(session);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Ride session saved successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+
+    setState(() {
+      _isRecording = false;
+      recognitions = [];
+      riskLevel = "LOW";
+    });
+  }
+
   void initCamera() {
     if (cameras.isEmpty) {
       print("No cameras found");
@@ -82,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {});
 
       controller!.startImageStream((CameraImage img) {
+        if (!_isRecording) return;
         if (!isDetecting) {
            isDetecting = true;
            
@@ -118,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    Geolocator.getPositionStream(
+    _positionSubscription = Geolocator.getPositionStream(
       locationSettings: locationSettings,
     ).listen((Position position) {
       if (!mounted) return;
@@ -150,7 +231,35 @@ class _HomeScreenState extends State<HomeScreen> {
           speedMps = 0.0;
         }
 
-        currentSpeed = speedMps * 3.6; 
+        currentSpeed = speedMps * 3.6;
+
+        // Logging route path during active recording session
+        if (_isRecording) {
+          final currentLatLng = LatLng(position.latitude, position.longitude);
+          _sessionPath.add(currentLatLng);
+
+          // Calculate accumulated distance
+          if (_lastLoggedPosition != null) {
+            final double stepDistanceMeters = Geolocator.distanceBetween(
+              _lastLoggedPosition!.latitude,
+              _lastLoggedPosition!.longitude,
+              position.latitude,
+              position.longitude,
+            );
+            if (stepDistanceMeters > 0.5) {
+              _rideDistanceKm += stepDistanceMeters / 1000.0;
+            }
+          }
+          _lastLoggedPosition = position;
+
+          // Track speed stats (using simulated speed if test mode active)
+          final double currentSpeedStats = AppSettingsService.isTestMode ? AppSettingsService.simulatedSpeed : currentSpeed;
+          if (currentSpeedStats > _maxSpeed) {
+            _maxSpeed = currentSpeedStats;
+          }
+          _speedSum += currentSpeedStats;
+          _speedCount++;
+        }
       });
     }, onError: (error) {
       print("Error in location stream: $error");
@@ -158,8 +267,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   
   Future<void> runInference(CameraImage cameraImage) async {
-    // 1. Check if isolate is ready
-    if (_isolateUtils.sendPort == null) {
+    // 1. Check if isolate is ready or recording stopped
+    if (_isolateUtils.sendPort == null || !_isRecording) {
         isDetecting = false;
         return;
     }
@@ -176,12 +285,6 @@ class _HomeScreenState extends State<HomeScreen> {
         pixelStrides: cameraImage.planes.map((p) => p.bytesPerPixel!).toList(),
     );
 
-    // 3. Send to Isolate (Fire and Forget? No, we need result)
-    // We need a specific port for THIS result, or a shared stream.
-    // For simplicity, let's assume IsolateUtils sends results to a global listener.
-    // WAIT: My IsolateUtils implementation is incomplete for receiving results.
-    // I will use a request-response pattern here using a temporary ReceivePort.
-    
     final responsePort = ReceivePort();
     
     // Send data + port to reply to
@@ -190,33 +293,50 @@ class _HomeScreenState extends State<HomeScreen> {
         responsePort.sendPort
     ]);
     
-    // Await result (non-blocking for UI, but blocks this async function)
+    // Await result
     final result = await responsePort.first;
     
-    // 4. Update UI
-    if (mounted) {
+    // Update UI
+    if (mounted && _isRecording) {
         List<dynamic> parsed = _processOutput(result as List<List<double>>);
         setState(() {
           recognitions = parsed;
           riskLevel = "Found: ${parsed.length}";
           if (parsed.isNotEmpty) {
-               // ... risk logic ...
               double maxArea = 0.0;
               for (var res in parsed) {
                 double area = res['rect']['w'] * res['rect']['h'];
                 if (area > maxArea) maxArea = area;
               }
-              double speedForCalculation = isTestMode ? simulatedSpeed : currentSpeed;
+              
+              double speedForCalculation = AppSettingsService.isTestMode ? AppSettingsService.simulatedSpeed : currentSpeed;
               Map<String, dynamic> riskData = RiskService.calculateRisk(maxArea, speedForCalculation);
               String rLevel = riskData['level'];
               int rPerc = riskData['percentage'];
               riskLevel = "$rPerc% Risk ($rLevel)\n${parsed.length} Potholes";
 
-              // Audio warning for high risk (debounce to 1 beep per second)
+              // Log pothole hazard to session (with 2.5 seconds debounce to avoid duplicate entries)
+              if (_lastPosition != null) {
+                int now = DateTime.now().millisecondsSinceEpoch;
+                if (now - _lastLoggedPotholeTime > 2500) {
+                  _lastLoggedPotholeTime = now;
+                  _sessionPotholes.add(
+                    PotholeHazard(
+                      lat: _lastPosition!.latitude,
+                      lng: _lastPosition!.longitude,
+                      riskPercentage: rPerc,
+                      riskLevel: rLevel,
+                    ),
+                  );
+                }
+              }
+
+              // Audio warning for high risk
               if (rPerc >= 75) {
                 int now = DateTime.now().millisecondsSinceEpoch;
                 if (now - lastBeepTime > 1000) {
                   lastBeepTime = now;
+                  audioPlayer.setVolume(AppSettingsService.beepVolume);
                   audioPlayer.play(AssetSource('audio/beep.wav'));
                 }
               }
@@ -291,41 +411,126 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     controller?.dispose();
+    _positionSubscription?.cancel();
     _isolateUtils.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isRecording) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF121212),
+        appBar: AppBar(
+          title: const Text("Record Scan"),
+          backgroundColor: const Color(0xFF1E1E1E),
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon Header
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Pothole Hazard Radar",
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Mount your phone securely on your vehicle's handlebars. The system will track your route, calculate impact risks, and alert you in real-time.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.4),
+                ),
+                const SizedBox(height: 48),
+                // Glowing Circular Start Button
+                GestureDetector(
+                  onTap: _startRecording,
+                  child: Container(
+                    width: 130,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.4),
+                          blurRadius: 24,
+                          spreadRadius: 4,
+                        )
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.play_arrow_rounded, color: Colors.white, size: 40),
+                        SizedBox(height: 4),
+                        Text(
+                          "START SCAN",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Camera Preview initialized check
     if (controller == null || !controller!.value.isInitialized) {
-      return Container();
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.redAccent),
+        ),
+      );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Pothole Detector")),
       body: Stack(
         children: [
-          // 1. Camera Preview (Full Screen, Cropped)
+          // 1. Camera Preview
           SizedBox.expand(
             child: FittedBox(
               fit: BoxFit.cover,
               child: SizedBox(
-                width: controller!.value.previewSize!.height, 
+                width: controller!.value.previewSize!.height,
                 height: controller!.value.previewSize!.width,
                 child: CameraPreview(controller!),
               ),
             ),
           ),
-          
+
+          // 2. YOLO Bounding Box Overlay
           CameraOverlay(
-              recognitions: recognitions,
-              previewH: _imageHeight,
-              previewW: _imageWidth,
-              screenH: MediaQuery.of(context).size.height,
-              screenW: MediaQuery.of(context).size.width,
+            recognitions: recognitions,
+            previewH: _imageHeight,
+            previewW: _imageWidth,
+            screenH: MediaQuery.of(context).size.height,
+            screenW: MediaQuery.of(context).size.width,
           ),
 
-          // Medium Risk Notification Banner
+          // 3. Medium Risk Banner
           if (riskLevel.contains("MEDIUM"))
             Positioned(
               top: 80,
@@ -336,13 +541,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    )
-                  ],
                 ),
                 child: Row(
                   children: [
@@ -358,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Text(
-                            "Medium risk level. Current speed is ${(isTestMode ? simulatedSpeed : currentSpeed).toStringAsFixed(1)} km/h.",
+                            "Medium risk level. Current speed is ${(AppSettingsService.isTestMode ? AppSettingsService.simulatedSpeed : currentSpeed).toStringAsFixed(1)} km/h.",
                             style: const TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                         ],
@@ -369,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // Risk Overlay (Glassmorphism card)
+          // 4. Bottom Control HUD
           Positioned(
             bottom: 20,
             left: 20,
@@ -385,123 +583,86 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white12, width: 1.5),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Row 1: Speed and Risk Info
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Stats info
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isTestMode
-                                      ? "Speed: ${simulatedSpeed.toStringAsFixed(1)} km/h (Simulated)"
-                                      : "Speed: ${currentSpeed.toStringAsFixed(1)} km/h",
-                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Risk: $riskLevel",
-                                  style: TextStyle(
-                                    color: riskLevel.contains("HIGH")
-                                        ? Colors.redAccent
-                                        : (riskLevel.contains("MEDIUM") ? Colors.orangeAccent : Colors.greenAccent),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            AppSettingsService.isTestMode
+                                ? "Speed: ${AppSettingsService.simulatedSpeed.toStringAsFixed(1)} km/h (Sim)"
+                                : "Speed: ${currentSpeed.toStringAsFixed(1)} km/h",
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Risk: $riskLevel",
+                            style: TextStyle(
+                              color: riskLevel.contains("HIGH")
+                                  ? Colors.redAccent
+                                  : (riskLevel.contains("MEDIUM") ? Colors.orangeAccent : Colors.greenAccent),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Dist: ${_rideDistanceKm.toStringAsFixed(2)} km",
+                            style: const TextStyle(color: Colors.white38, fontSize: 12),
                           ),
                         ],
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Divider(color: Colors.white12, height: 1),
-                      ),
-                      // Row 2: Test Mode Toggle
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.science_outlined, color: Colors.white70, size: 18),
-                              SizedBox(width: 8),
-                              Text(
-                                "Simulate Test Speed",
-                                style: TextStyle(color: Colors.white70, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 28,
-                            child: Switch(
-                              value: isTestMode,
-                              onChanged: (val) {
-                                setState(() {
-                                  isTestMode = val;
-                                });
-                              },
-                              activeColor: Colors.redAccent,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (isTestMode) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              "${simulatedSpeed.toStringAsFixed(0)} km/h",
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: simulatedSpeed,
-                                min: 10.0,
-                                max: 40.0,
-                                divisions: 6,
-                                label: "${simulatedSpeed.toStringAsFixed(0)} km/h",
-                                activeColor: Colors.redAccent,
-                                inactiveColor: Colors.white24,
-                                onChanged: (val) {
-                                  setState(() {
-                                    simulatedSpeed = val;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
+                      // Stop button
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton.icon(
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.redAccent,
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () {
-                                audioPlayer.play(AssetSource('audio/beep.wav'));
-                              },
-                              icon: const Icon(Icons.volume_up_outlined, size: 16),
-                              label: const Text("Test Warning Beep", style: TextStyle(fontSize: 12)),
-                            ),
-                          ],
-                        )
-                      ]
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                backgroundColor: const Color(0xFF1E1E1E),
+                                title: const Text("Complete Commute?", style: TextStyle(color: Colors.white)),
+                                content: const Text("Would you like to save this scanned commute or discard it?", style: TextStyle(color: Colors.white70)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _stopRecording(false); // Discard
+                                    },
+                                    child: const Text("Discard", style: TextStyle(color: Colors.redAccent)),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("Cancel", style: TextStyle(color: Colors.white54)),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _stopRecording(true); // Save
+                                    },
+                                    child: const Text("Save Ride", style: TextStyle(color: Colors.green)),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: const Icon(Icons.stop, size: 24),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
