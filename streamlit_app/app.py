@@ -43,13 +43,13 @@ st.markdown('<p class="sub-header">Upload an image</p>', unsafe_allow_html=True)
 @st.cache_resource
 def load_model():
     # We load the PyTorch weights (best.pt) because it's easier to run locally in Python than TFLite
-    model_path = r"D:\save\Uni\FYP\model_training\runs\detect\train2\weights\best.pt"
+    model_path = r"D:\save\Uni\FYP\model_training\runs\detect\train4\weights\best.pt"
     return YOLO(model_path)
 
 try:
     model = load_model()
     st.sidebar.success("✅ AI Model Loaded Successfully")
-    st.sidebar.info("Model: YOLOv8 Nano\n\nResolution: 320x320")
+    st.sidebar.info("Model: YOLOv8 Small\n\nResolution: 320x320")
 except Exception as e:
     st.sidebar.error("❌ Failed to load model. Check file path.")
     st.error(f"Error details: {e}")
