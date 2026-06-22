@@ -38,12 +38,14 @@ st.markdown("""
 st.markdown('<p class="main-header">Micro-Mobility Pothole Detection</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Upload an image</p>', unsafe_allow_html=True)
 
-# --- Load Model ---
-# We use st.cache_resource so it only loads into memory once when the server starts
+import os
+
 @st.cache_resource
 def load_model():
-    # RELATIVE PATH: The model is now in the exact same folder as this script!
-    return YOLO("best.pt")
+    # Dynamically resolve the path of best.pt relative to this script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(script_dir, "best.pt")
+    return YOLO(model_path)
 
 try:
     model = load_model()
