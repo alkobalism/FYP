@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    controller = CameraController(cameras[0], ResolutionPreset.medium, enableAudio: false);
+    controller = CameraController(cameras[0], ResolutionPreset.low, enableAudio: false);
     controller!.initialize().then((_) {
       if (!mounted) return;
       setState(() {});
@@ -358,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
     List<dynamic> detections = [];
     for (int i = 0; i < 2100; i++) {
         double confidence = output[4][i];
-        if (confidence > 0.40) {
+        if (confidence > 0.50) {
             double x = output[0][i];
             double y = output[1][i];
             double w = output[2][i];
@@ -371,10 +371,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 h /= inputSize;
             }
             
+            double yMin = y - (h / 2);
+
+            // ROI Horizon Filter: Ignore detections in the top 35% of the frame (handbags, clothes, sky)
+            if (yMin < 0.35) {
+                continue;
+            }
+            
             detections.add({
                 "rect": {
                     "x": (x - w / 2), 
-                    "y": (y - h / 2),
+                    "y": yMin,
                     "w": w,
                     "h": h
                 },
