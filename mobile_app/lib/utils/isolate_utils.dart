@@ -74,7 +74,7 @@ class IsolateUtils {
       final SendPort replyTo = message[1];
 
       try {
-        // A. Image Processing (YUV -> RGB -> Resize -> Rotate)
+        // A. Image Processing (Direct single-pass YUV -> 320x320 RGB Float Normalization + 90deg Rotation)
         final width = info.cameraImage.width;
         final height = info.cameraImage.height;
         final uvRowStride = info.cameraImage.strides[1];
@@ -83,42 +83,31 @@ class IsolateUtils {
         final uBytes = info.cameraImage.planes[1];
         final vBytes = info.cameraImage.planes[2];
 
-        final image = img.Image(width: width, height: height);
+        final int inputS = info.inputSize;
+        var inputBytes = Float32List(1 * inputS * inputS * 3);
+        int bufferIdx = 0;
 
-        for (int w = 0; w < width; w++) {
-          for (int h = 0; h < height; h++) {
-            final int uvIndex =
-                uvPixelStride * (w / 2).floor() + uvRowStride * (h / 2).floor();
-            final int index = h * width + w;
+        for (int outY = 0; outY < inputS; outY++) {
+          final int origW = ((outY * (width - 1)) ~/ (inputS - 1));
+          for (int outX = 0; outX < inputS; outX++) {
+            final int origH = height - 1 - ((outX * (height - 1)) ~/ (inputS - 1));
+            
+            final int index = origH * width + origW;
+            final int uvIndex = uvPixelStride * (origW >> 1) + uvRowStride * (origH >> 1);
 
             final int y = yBytes[index];
             final int u = uBytes[uvIndex];
             final int v = vBytes[uvIndex];
 
-            // YUV to RGB conversion
-            int r = (y + (1.370705 * (v - 128))).round().clamp(0, 255);
-            int g = (y - (0.337633 * (u - 128)) - (0.698001 * (v - 128))).round().clamp(0, 255);
-            int b = (y + (1.732446 * (u - 128))).round().clamp(0, 255);
+            // YUV to RGB conversion + normalize to 0.0 - 1.0 directly
+            double r = (y + (1.370705 * (v - 128))).clamp(0, 255) / 255.0;
+            double g = (y - (0.337633 * (u - 128)) - (0.698001 * (v - 128))).clamp(0, 255) / 255.0;
+            double b = (y + (1.732446 * (v - 128))).clamp(0, 255) / 255.0;
 
-            image.setPixelRgb(w, h, r, g, b);
+            inputBytes[bufferIdx++] = r;
+            inputBytes[bufferIdx++] = g;
+            inputBytes[bufferIdx++] = b;
           }
-        }
-
-        // Rotate & Resize
-        var processed = img.copyRotate(image, angle: 90);
-        processed = img.copyResize(processed, width: info.inputSize, height: info.inputSize);
-
-        // Normalize
-        var inputBytes = Float32List(1 * info.inputSize * info.inputSize * 3);
-        var buffer = Float32List.view(inputBytes.buffer);
-        int pixelIndex = 0;
-        for (var y = 0; y < info.inputSize; y++) {
-          for (var x = 0; x < info.inputSize; x++) {
-            var pixel = processed.getPixel(x, y);
-            buffer[pixelIndex++] = pixel.r / 255.0;
-            buffer[pixelIndex++] = pixel.g / 255.0;
-            buffer[pixelIndex++] = pixel.b / 255.0;
-          } 
         }
 
         // B. Inference (Interpreter Run)

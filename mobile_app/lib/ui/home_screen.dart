@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    controller = CameraController(cameras[0], ResolutionPreset.low, enableAudio: false);
+    controller = CameraController(cameras[0], ResolutionPreset.medium, enableAudio: false);
     controller!.initialize().then((_) {
       if (!mounted) return;
       setState(() {});
