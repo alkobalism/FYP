@@ -356,7 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
   
   List<dynamic> _processOutput(List<List<double>> output) {
     List<dynamic> detections = [];
-    for (int i = 0; i < 2100; i++) {
+    int numAnchors = output.isNotEmpty && output[0].isNotEmpty ? output[0].length : 2100;
+    for (int i = 0; i < numAnchors; i++) {
         double confidence = output[4][i];
         if (confidence > 0.50) {
             double x = output[0][i];

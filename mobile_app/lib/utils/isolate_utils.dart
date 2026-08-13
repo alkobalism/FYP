@@ -111,7 +111,9 @@ class IsolateUtils {
         }
 
         // B. Inference (Interpreter Run)
-        var output = List<List<List<double>>>.filled(1, List.generate(5, (_) => List.filled(2100, 0.0)));
+        int s = info.inputSize;
+        int numAnchors = (s ~/ 8) * (s ~/ 8) + (s ~/ 16) * (s ~/ 16) + (s ~/ 32) * (s ~/ 32);
+        var output = List<List<List<double>>>.filled(1, List.generate(5, (_) => List.filled(numAnchors, 0.0)));
         interpreter.run(inputBytes.reshape([1, info.inputSize, info.inputSize, 3]), output);
 
         // C. Send Results Back
