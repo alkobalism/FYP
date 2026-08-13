@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final AudioPlayer audioPlayer = AudioPlayer();
   int lastBeepTime = 0;
 
-  final int inputSize = 320; 
+  final int inputSize = 416; 
 
   // Recording variables
   bool _isRecording = false;
