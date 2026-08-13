@@ -22,12 +22,27 @@ def main():
 
     print(f"Training YOLOv8 Nano using dataset: {data_yaml_path}")
 
-    # Train for 50 epochs with imgsz=320
-    results = model.train(data=data_yaml_path, epochs=50, imgsz=320, plots=True)
+    # Train for 60 epochs with imgsz=416 and augmentations
+    results = model.train(
+        data=data_yaml_path,
+        epochs=60,
+        imgsz=416,
+        batch=16,
+        hsv_h=0.015,
+        hsv_s=0.7,
+        hsv_v=0.4,
+        degrees=10.0,
+        translate=0.1,
+        scale=0.5,
+        shear=2.0,
+        perspective=0.0005,
+        mosaic=1.0,
+        plots=True
+    )
     
     # Export to TFLite format with INT8 quantization
     print("Exporting trained Nano model to INT8 TFLite...")
-    success = model.export(format="tflite", int8=True, data=data_yaml_path, imgsz=320)
+    success = model.export(format="tflite", int8=True, data=data_yaml_path, imgsz=416)
     print(f"Export Success: {success}")
 
 if __name__ == '__main__':
